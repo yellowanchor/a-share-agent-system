@@ -1,0 +1,71 @@
+# ============================================================
+#  全局配置文件 — A股多智能体舆情与量化策略系统
+# ============================================================
+#  使用方式: 所有 API Key 等敏感信息通过环境变量注入，
+#           此文件仅存储非敏感配置项。
+# ============================================================
+
+# -------- 项目元信息 --------
+project:
+  name: "A股多智能体舆情与量化策略系统"
+  version: "0.1.0"
+  timezone: "Asia/Shanghai"
+
+# -------- 数据源配置 --------
+data_sources:
+  a_share:
+    provider: "baostock"
+    adjust_mode: "2"              # 1=后复权, 2=前复权, 3=不复权
+    # 全A股股票池获取范围
+    stock_pool:
+      exclude_st: true
+      exclude_new_ipo_days: 60
+      min_daily_turnover_yuan: 10_000_000
+
+  hk_stock:
+    provider: "akshare"
+    min_daily_turnover_hkd: 1_000_000  # 港股最低流动性门槛
+
+  news:
+    provider: "akshare"
+    dedup_method: "simhash"
+    simhash_threshold: 3          # 汉明距离阈值
+
+# -------- 缓存与存储 --------
+storage:
+  cache_dir: "./data/processed"
+  duckdb_memory_limit: "16GB"     # 内存模式限制
+  vector_store_dir: "./data/vector_store"
+
+# -------- 模型配置 --------
+models:
+  # 大语言模型基座
+  llm:
+    name: "Qwen/Qwen2.5-7B-Instruct"
+    dtype: "bf16"
+    max_model_len: 8192
+    gpu_memory_utilization: 0.85
+
+  # 嵌入模型（RAG）
+  embedding:
+    name: "BAAI/bge-m3"
+    device: "cuda"
+    normalize: true
+
+# -------- Agent 配置 --------
+agents:
+  analyst:
+    temperature: 0.1
+    max_tokens: 2048
+  strategist:
+    temperature: 0.3
+    max_tokens: 3072
+  critic:
+    temperature: 0.0
+    max_tokens: 1024
+
+# -------- 日志 --------
+logging:
+  level: "INFO"
+  format: "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+  file: "./logs/system.log"

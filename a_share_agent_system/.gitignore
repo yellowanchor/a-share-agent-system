@@ -1,0 +1,52 @@
+# ============================================================
+#  A股多智能体舆情与量化策略系统 — Git 忽略规则
+# ============================================================
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# 虚拟环境
+.venv/
+venv/
+env/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 数据目录（不放版本库）
+data/raw/
+data/processed/*.db
+data/processed/*.parquet
+data/vector_store/
+
+# 模型权重（过大，不放版本库）
+models/
+*.bin
+*.safetensors
+*.pt
+*.pth
+
+# 日志
+logs/
+*.log
+
+# 环境变量（含 API Key）
+.env
+.env.local
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Wandb
+wandb/

@@ -1,0 +1,79 @@
+# ============================================================
+#  .gitignore — A股多智能体舆情与量化策略系统
+# ============================================================
+
+# -------- Python --------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+dist/
+build/
+.installed.cfg
+*.egg
+
+# -------- 虚拟环境 --------
+venv/
+env/
+.venv/
+ENV/
+
+# -------- 大数据文件（不纳入版本控制） --------
+# 行情/财务/新闻数据
+*.parquet
+*.duckdb
+*.db
+*.sqlite
+*.sqlite3
+
+# 向量库产物
+*.npy
+*.npz
+
+# 新闻原始数据
+*.jsonl
+
+# 模型权重（bge-m3 等，数 GB）
+a_share_agent_system/models/
+data_platform/models/
+
+# data 目录下的数据文件（仅保留代码与说明文档）
+a_share_agent_system/data/processed/
+a_share_agent_system/data/vector_store/
+a_share_agent_system/data/raw/
+a_share_agent_system/data/_backup/
+data_platform/data/
+
+# -------- 日志 --------
+a_share_agent_system/logs/
+*.log
+
+# -------- WorkBuddy --------
+.workbuddy/
+
+# -------- IDE / 编辑器 --------
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# -------- 操作系统 --------
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.bak
+
+# -------- 文档（仅保留 README.md，其他文档不上传）--------
+*.md
+!README.md
+项目总结/
+
+# -------- 临时文件 --------
+*.lock
+.cache/
+tmp/
