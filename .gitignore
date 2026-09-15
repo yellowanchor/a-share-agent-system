@@ -72,6 +72,23 @@ desktop.ini
 *.md
 !README.md
 项目总结/
+*.docx
+*.doc
+*.pdf
+
+# -------- 一次性脚本（论文排版/文档生成，非系统代码）--------
+/finalize.py
+/finalize_v3.py
+/fix_refs.py
+/gen_figs.py
+/merge_qa_feas.py
+/rebuild_by_template.py
+/rebuild_v2.py
+/rebuild_v3.py
+
+# 根目录架构图副本（正式版位于 a_share_agent_system/docs/）
+/architecture.png
+/flow.png
 
 # -------- 临时文件 --------
 *.lock
