@@ -1,40 +1,44 @@
 # ============================================================
 #  A股多智能体舆情与量化策略系统 — 依赖清单
 # ============================================================
+#  运行环境（Phase 1 已验证）:
+#    Python 3.12.3 (C:\Users\djc\AppData\Local\Programs\Python\Python312)
+#    RTX 5070 Ti (16GB VRAM) / 64GB RAM / Windows
 #  安装: pip install -r requirements.txt
-#  硬件: RTX 5070 Ti (16GB VRAM) / 64GB RAM
+#  注意: GPU 版 torch 需从 pytorch 官方 cu128 索引安装:
+#    pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
 # ============================================================
 
-# -------- Phase 1: 数据基础 (当前启用) --------
+# -------- 数据处理 --------
 pandas>=2.0.0
 numpy>=1.24.0
 pyarrow>=14.0.0          # Parquet 读写引擎
 baostock>=0.8.8           # A股行情数据源
-akshare>=1.12.0           # 港股+新闻数据源
+akshare>=1.12.0           # 新闻数据源
 aiohttp>=3.9.0            # 异步HTTP客户端
 pydantic>=2.0.0           # 数据校验
-duckdb>=0.9.0             # 高性能分析型数据库(内存模式)
-chromadb>=0.4.0           # 向量数据库(HNSW索引)
-
-# -------- 工具库 --------
-pyyaml>=6.0               # YAML配置文件解析
-tqdm>=4.65.0              # 进度条
+duckdb>=1.5.0             # 高性能分析型数据库(3555万行)
 simhash>=2.1.0            # 新闻去重(SimHash)
+pynvml>=11.5.0            # GPU显存监控(storage_monitor)
 
-# -------- Phase 2: 模型训练 (后续启用) --------
-# torch>=2.1.0
-# transformers>=4.36.0
-# peft>=0.7.0
-# accelerate>=0.25.0
-# bitsandbytes>=0.41.0
-# wandb>=0.16.0
+# -------- 模型与RAG (Phase 1 已启用) --------
+# 注: 向量库为自研 LocalVectorStore (src/models/rag/local_store.py)，
+#     替代存在 Windows HNSW 落盘缺陷的 ChromaDB，无需 chromadb 依赖。
+sentence-transformers>=3.0.0,<7.0.0   # bge-m3 嵌入模型加载 (实际 6.0.0)
+transformers>=4.41.0,<5.0.0           # 实际 4.57.6 (5.x 与 sentence-transformers 不兼容)
 
-# -------- Phase 3: Agent集成 (后续启用) --------
-# langchain>=0.1.0
-# llama-index>=0.9.0
-# vllm>=0.2.0      # 或 ollama
-# streamlit>=1.30.0
+# -------- Phase 2: LoRA 微调 (待启用) --------
+# peft>=0.13.0
+# accelerate>=0.34.0
+# bitsandbytes>=0.43.0
+# wandb>=0.18.0
+# datasets>=2.20.0
+
+# -------- Phase 3: Agent集成 (待启用) --------
+# streamlit>=1.38.0
 
 # -------- 开发工具 --------
+pyyaml>=6.0               # YAML配置文件解析
+tqdm>=4.65.0              # 进度条
 pytest>=7.4.0
 ipython>=8.0.0

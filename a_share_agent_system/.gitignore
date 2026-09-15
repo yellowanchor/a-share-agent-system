@@ -27,7 +27,8 @@ data/processed/*.parquet
 data/vector_store/
 
 # 模型权重（过大，不放版本库）
-models/
+# 注意：必须锚定根目录（/models/），否则会误伤源码目录 src/models/
+/models/
 *.bin
 *.safetensors
 *.pt
