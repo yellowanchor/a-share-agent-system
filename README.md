@@ -2,7 +2,7 @@
 
 # A 股多智能体舆情分析与量化策略系统
 
-**基于大语言模型多智能体的 A 股舆情分析与量化策略系统设计与实现**
+**基于千问大模型多智能体的 A 股舆情分析与量化策略系统设计与实现**
 
 [![Python](https://img.shields.io/badge/Python-3.12.3-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.11.0%2Bcu128-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org/)
@@ -206,7 +206,7 @@ a-share-agent-system/
 | 数据存储 | DuckDB 1.5.3（列式，内存模式） |
 | 向量检索 | 自研 LocalVectorStore（bge-m3 + torch GPU 精确余弦） |
 | 嵌入模型 | BAAI/bge-m3（1024 维，560M 参数） |
-| 大语言模型 | Qwen2.5-7B-Instruct（QLoRA NF4 + LoRA r=64） |
+| 千问大模型 | Qwen2.5-7B-Instruct（QLoRA NF4 + LoRA r=64） |
 | 训练框架 | PyTorch 2.11.0+cu128 / PEFT / TRL / bitsandbytes |
 | 数据源 | AkShare / BaoStock / 新浪财经 / 腾讯行情 |
 | 前端 | Streamlit（Phase 3） |
