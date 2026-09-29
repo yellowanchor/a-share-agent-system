@@ -74,11 +74,15 @@
 git clone https://github.com/yellowanchor/a-share-agent-system.git
 cd a-share-agent-system/a_share_agent_system
 
-pip install -r requirements.txt
+# 以可编辑模式安装（推荐，安装后任意目录均可 import src.*）
+pip install -e .[dev]
 
-# PyTorch（CUDA 12.8）需单独安装
+# PyTorch（CUDA 12.8）需单独安装，否则 pip 会拉取 CPU 版本
 pip install torch --index-url https://download.pytorch.org/whl/cu128
 ```
+
+> 未执行 `pip install -e .` 时，脚本内置 `sys.path` 兜底仍可正常运行。
+> 常用命令也可用 `make db` / `make rag` / `make train` / `make eval` 调用。
 
 模型权重需自行下载并放入 `models/` 目录（该目录已加入 `.gitignore`）：
 
@@ -123,24 +127,29 @@ python scripts/eval_rag_recall.py
 
 ```
 a-share-agent-system/
-├── a_share_agent_system/          # 主系统
-│   ├── src/
-│   │   ├── agents/                # 多智能体框架（Analyst / Strategist / Critic）
+├── a_share_agent_system/              # 主系统（Python 包根目录）
+│   ├── pyproject.toml                 # PEP 621 元数据 + ruff/pytest/mypy 配置
+│   ├── Makefile                       # 常用命令入口（make db / rag / train / eval）
+│   ├── src/                           # 源码（src-layout，安装后可全局 import）
+│   │   ├── config.py                  # 统一配置与路径入口
+│   │   ├── agents/                    # 多智能体（Analyst / Strategist / Critic）
 │   │   ├── data/
-│   │   │   ├── fetchers/          # 数据采集器（行情 / 新闻）
-│   │   │   ├── storage/           # DuckDB 查询接口
-│   │   │   └── validators/        # 数据质量校验
+│   │   │   ├── storage/               # DuckDB 查询接口
+│   │   │   └── _legacy/               # 早期采集框架（归档，已停用）
 │   │   ├── models/
-│   │   │   ├── rag/               # 自研向量库 LocalVectorStore（支持增量更新）
-│   │   │   └── sentiment/         # 情感分析（词典打标 / QLoRA 训练 / 评估）
-│   │   └── utils/                 # 日志与显存监控
-│   ├── scripts/                   # 构建、评估、验证脚本
-│   ├── docs/                      # 架构图与流程图
-│   ├── configs/                   # 配置文件
-│   └── tests/                     # 单元测试
-├── data_platform/                 # 数据采集平台
-│   ├── scripts/                   # 采集脚本（01–06）
-│   └── src/                       # BaoStock 客户端与存储封装
+│   │   │   ├── rag/                   # 自研向量库 LocalVectorStore（支持增量更新）
+│   │   │   └── sentiment/             # 情感分析（词典打标 / QLoRA / 评估）
+│   │   ├── app/                       # Streamlit 前端（Phase 3）
+│   │   └── utils/                     # 日志与显存监控
+│   ├── scripts/                       # 构建、评估、验证脚本
+│   │   └── _legacy/                   # 一次性验证脚本（归档）
+│   ├── configs/                       # settings.yaml / train_config.yaml / prompts
+│   ├── tests/                         # pytest 用例
+│   ├── docs/                          # 架构图与流程图
+│   └── reports/                       # 实验报告
+├── data_platform/                     # 数据采集平台（Phase 1 实际采集器）
+│   ├── scripts/                       # 采集脚本（01–06）
+│   └── src/                           # BaoStock 客户端与存储封装
 └── README.md
 ```
 
@@ -206,14 +215,15 @@ a-share-agent-system/
 
 - [x] **Phase 1** — 数据底座：数据采集 + DuckDB 建库 + RAG 向量检索
 - [x] **Phase 2** — 模型训练：弱监督打标 + QLoRA 微调 + 三组对比实验
-- [ ] **Phase 3** — 多智能体框架（Analyst / Strategist / Critic）+ Streamlit 前端
+- [x] **工程化重构** — pyproject 包化 / 死代码归档 / 统一配置入口
+- [ ] **Phase 3** — 多智能体框架（Analyst / Strategist / Critic）+ Streamlit 前端 + 端到端测试
 
 ## 硬件环境
 
 | 项 | 配置 |
 |----|------|
-| GPU | NVIDIA RTX 5070 Ti 16GB |
-| 内存 | 64GB |
+| GPU | NVIDIA RTX 5070 Ti 16GB（Blackwell, sm_120） |
+| 内存 | 64GB（计划调整为 32GB，瓶颈在显存，影响有限） |
 | 操作系统 | Windows 11 |
 
 ## 免责声明

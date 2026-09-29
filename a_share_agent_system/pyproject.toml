@@ -1,0 +1,145 @@
+# ============================================================
+#  A股多智能体舆情与量化策略系统 — 项目元数据与工具配置
+# ============================================================
+#  采用 PEP 621 标准元数据 + src-layout 包结构。
+#  安装（开发模式，推荐）:
+#      pip install -e .[dev]
+#  GPU 依赖（torch 系）需从 PyTorch cu128 索引安装，见 [train] 段注释。
+# ============================================================
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "a-share-agent-system"
+version = "0.2.0"
+description = "基于大语言模型多智能体的 A 股舆情分析与量化策略系统"
+readme = "README.md"
+requires-python = ">=3.10"
+license = { text = "Academic Use Only - 毕业设计项目" }
+authors = [{ name = "戴金成", email = "" }]
+
+keywords = [
+    "A-share", "sentiment-analysis", "RAG", "multi-agent",
+    "QLoRA", "quantitative", "LLM",
+]
+classifiers = [
+    "Programming Language :: Python :: 3.12",
+    "Operating System :: Microsoft :: Windows",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Office/Business :: Financial :: Investment",
+]
+
+# -------- 核心依赖（数据底座 + RAG 检索，CPU 可跑）--------
+dependencies = [
+    "pandas>=2.0.0",
+    "numpy>=1.24.0",
+    "pyarrow>=14.0.0",          # Parquet 读写引擎
+    "duckdb>=1.5.0",            # 分析型数据库（3555 万行入库 ~27s）
+    "baostock>=0.8.8",          # A 股行情数据源
+    "akshare>=1.12.0",          # 新闻 / 港股数据源
+    "aiohttp>=3.9.0",
+    "pydantic>=2.0.0",
+    "simhash>=2.1.0",           # 新闻 SimHash 去重
+    "pynvml>=11.5.0",           # GPU 显存监控
+    "sentence-transformers>=3.0.0,<7.0.0",   # bge-m3 嵌入（实际 6.0.0）
+    "transformers>=4.41.0,<5.0.0",           # 实际 4.57.6
+    "pyyaml>=6.0",
+    "tqdm>=4.65.0",
+]
+
+# -------- 可选依赖分组 --------
+[project.optional-dependencies]
+# 模型微调（Phase 2 已启用）
+# 注意：GPU 版 torch 必须先手动装，否则 pip 会拉 CPU 版本
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+train = [
+    "torch>=2.4.0",
+    "peft>=0.13.0",             # 实际 0.20.0
+    "accelerate>=0.34.0",
+    "bitsandbytes>=0.43.0",     # 实际 0.50.2，QLoRA NF4 量化
+    "datasets>=2.20.0",
+    "wandb>=0.18.0",
+]
+
+# 可视化前端（Phase 3 启用）
+app = [
+    "streamlit>=1.38.0",
+    "plotly>=5.20.0",
+]
+
+# 开发工具链
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "ruff>=0.6.0",
+    "mypy>=1.10.0",
+    "ipython>=8.0.0",
+]
+
+[project.urls]
+Repository = "https://github.com/yellowanchor/a-share-agent-system"
+
+# ============================================================
+#  包发现：src-layout，顶层包名为 src
+#  安装后 `import src.data.*` / `import src.models.*` 全局可用，
+#  脚本无需再依赖 cwd 或 sys.path hack
+# ============================================================
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["src*"]
+
+[tool.setuptools.package-data]
+"src" = ["*.yaml", "*.yml"]
+
+# ============================================================
+#  Ruff — 代码规范（替代 flake8 + isort）
+# ============================================================
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+exclude = [
+    ".git", "__pycache__", "build", "dist",
+    "src/data/_legacy",      # 归档区不做规范检查
+    "scripts/_legacy",
+]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = [
+    "E501",     # 行长由 formatter 处理
+    "B008",
+]
+
+[tool.ruff.lint.per-file-ignores]
+"scripts/*" = ["E402"]      # 脚本中 sys.path 兜底导致 import 不在顶部
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+# ============================================================
+#  Pytest
+# ============================================================
+[tool.pytest.ini_options]
+minversion = "7.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-ra --strict-markers"
+markers = [
+    "slow: 耗时用例（需加载模型，默认跳过）",
+    "gpu: 需要 GPU 的用例",
+]
+
+# ============================================================
+#  Mypy
+# ============================================================
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = false
+warn_unused_configs = true
+ignore_missing_imports = true
+exclude = ["src/data/_legacy/", "scripts/_legacy/"]

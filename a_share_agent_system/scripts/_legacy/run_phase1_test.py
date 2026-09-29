@@ -23,13 +23,13 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from src.data.fetchers import (
+from src.data._legacy.fetchers import (
     AShareFetcher,
     MarketDataPipeline,
     NewsFetcher,
 )
-from src.data.validators import DataValidator, QualityReport
-from src.data.validators.data_validator import DataValidationError
+from src.data._legacy.validators import DataValidator, QualityReport
+from src.data._legacy.validators.data_validator import DataValidationError
 from src.utils.logger import setup_logging
 from src.utils.storage_monitor import get_disk_usage
 

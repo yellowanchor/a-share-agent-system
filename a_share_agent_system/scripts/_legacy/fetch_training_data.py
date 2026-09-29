@@ -19,8 +19,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from src.utils.logger import setup_logging
 from src.utils.storage_monitor import get_disk_usage
-from src.data.fetchers.market_data_pipeline import MarketDataPipeline
-from src.data.validators.quality_report import QualityReport
+from src.data._legacy.fetchers.market_data_pipeline import MarketDataPipeline
+from src.data._legacy.validators.quality_report import QualityReport
 
 
 async def main() -> None:

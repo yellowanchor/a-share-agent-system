@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 
 import pandas as pd
 
-from src.data.validators.data_validator import DataValidator, DataValidationError
+from src.data._legacy.validators.data_validator import DataValidator, DataValidationError
 
 logger = logging.getLogger(__name__)
 

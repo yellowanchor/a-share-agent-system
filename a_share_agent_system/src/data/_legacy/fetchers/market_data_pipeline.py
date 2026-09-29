@@ -19,8 +19,8 @@ import pandas as pd
 import tqdm
 from tqdm.asyncio import tqdm_asyncio
 
-from src.data.fetchers.a_share_fetcher import AShareFetcher
-from src.data.validators.data_validator import DataValidator
+from src.data._legacy.fetchers.a_share_fetcher import AShareFetcher
+from src.data._legacy.validators.data_validator import DataValidator
 
 logger = logging.getLogger(__name__)
 

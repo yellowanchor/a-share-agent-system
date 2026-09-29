@@ -14,6 +14,14 @@ build/
 venv/
 env/
 
+# 工具缓存
+.ruff_cache/
+.mypy_cache/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
 # IDE
 .vscode/
 .idea/
@@ -25,6 +33,7 @@ data/raw/
 data/processed/*.db
 data/processed/*.parquet
 data/vector_store/
+data/_backup/
 
 # 模型权重（过大，不放版本库）
 # 注意：必须锚定根目录（/models/），否则会误伤源码目录 src/models/

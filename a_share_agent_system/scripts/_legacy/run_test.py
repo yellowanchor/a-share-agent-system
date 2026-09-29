@@ -20,8 +20,8 @@ import pandas as pd
 # 确保项目根目录在 sys.path 中
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
-from src.data.fetchers import AShareFetcher, HKStockFetcher
-from src.data.validators import DataValidator, DataValidationError
+from src.data._legacy.fetchers import AShareFetcher, HKStockFetcher
+from src.data._legacy.validators import DataValidator, DataValidationError
 from src.agents import BaseAgent
 from src.utils.logger import setup_logging
 from src.utils.storage_monitor import get_disk_usage, get_gpu_memory
@@ -60,8 +60,8 @@ def check_imports() -> bool:
         全部导入成功返回 True。
     """
     modules_to_check = [
-        ("src.data.fetchers", ["BaseFetcher", "AShareFetcher", "HKStockFetcher"]),
-        ("src.data.validators", ["DataValidator", "DataValidationError"]),
+        ("src.data._legacy.fetchers", ["BaseFetcher", "AShareFetcher", "HKStockFetcher"]),
+        ("src.data._legacy.validators", ["DataValidator", "DataValidationError"]),
         ("src.agents", ["BaseAgent"]),
         ("src.utils.logger", ["setup_logging"]),
         ("src.utils.storage_monitor", ["check_resources", "report"]),

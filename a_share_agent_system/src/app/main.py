@@ -1,9 +1,11 @@
-"""app.py — Streamlit 前端主入口 (Phase 3 实现)
+"""main.py — Streamlit 前端主入口 (Phase 3 实现)
 
 当前为占位文件，Phase 3 实现功能：
     - ChatUI: 与多Agent对话交互
     - K线可视化看板: 基于 Plotly 的交互式图表
     - 情感趋势展示: 舆情分析结果时间线
+
+运行: streamlit run src/app/main.py
 """
 
 # TODO: Phase 3 实现

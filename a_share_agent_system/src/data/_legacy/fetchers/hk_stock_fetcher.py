@@ -13,7 +13,7 @@ from typing import Optional
 
 import pandas as pd
 
-from src.data.fetchers.base_fetcher import BaseFetcher
+from src.data._legacy.fetchers.base_fetcher import BaseFetcher
 
 logger = logging.getLogger(__name__)
 

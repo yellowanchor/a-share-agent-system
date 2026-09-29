@@ -148,8 +148,8 @@ async def fetch_all_news(
     Returns:
         {"total": int, "path": str, "size_mb": float}
     """
-    from src.data.fetchers.market_data_pipeline import MarketDataPipeline
-    from src.data.fetchers.news_fetcher import NewsFetcher
+    from src.data._legacy.fetchers.market_data_pipeline import MarketDataPipeline
+    from src.data._legacy.fetchers.news_fetcher import NewsFetcher
     import akshare as ak
 
     # 获取股票列表
