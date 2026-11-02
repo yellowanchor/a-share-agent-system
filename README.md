@@ -146,6 +146,33 @@ pytest tests/ -v
 单次真实推理耗时参考（RTX 5070 Ti 16GB）：Analyst 44s（含 bge-m3 首次编码）、Strategist 4.5s、Critic 5.0s。
 批量评测复用同一批 Agent 实例：首只承担模型加载（约 14 s），后续每只检索仅约 50 ms。
 
+### 5. 前端看板（Phase 3.3）
+
+```bash
+# 苹果官网简约风格的 Streamlit 看板（纯只读展示层，不加载大模型）
+streamlit run src/app/main.py
+```
+
+看板功能：
+
+- **批次概览**：首轮/终局通过率、闭环增益、平均迭代轮数、整批耗时；首轮 vs 终局通过率对比图
+- **K 线图**：前复权日线 + MA5/20/60 + 策略价位线（止损/止盈/入场/支撑/阻力）+ PIT 数据截止日竖线
+- **情感趋势**：日频利多/利空条形（红涨绿跌）+ 7 日净情绪均线（词典打标，90.5% 一致率）
+- **Agent 报告**：Analyst / Strategist / Critic 三卡片 + 行情/财务快照 + 证据链（逐条可溯源）+ 迭代闭环时间线
+
+<div align="center">
+  <img src="a_share_agent_system/docs/screenshots/dashboard_top.png" alt="看板概览与K线" width="85%">
+</div>
+
+<details>
+<summary>更多截图</summary>
+
+<div align="center">
+  <img src="a_share_agent_system/docs/screenshots/dashboard_report.png" alt="多智能体报告" width="85%">
+</div>
+
+</details>
+
 ## 项目结构
 
 ```
@@ -170,7 +197,12 @@ a-share-agent-system/
 │   │   │   ├── llm/                   # LLM 后端（Qwen 4bit / Mock 离线桩）
 │   │   │   ├── rag/                   # 自研向量库 LocalVectorStore（支持增量更新）
 │   │   │   └── sentiment/             # 情感分析（词典打标 / QLoRA / 评估）
-│   │   ├── app/                       # Streamlit 前端（Phase 3.3）
+│   │   ├── app/                       # Streamlit 看板（Phase 3.3：main/style/data/charts/views 五模块）
+│   │   │   ├── main.py                # 主入口（批次/股票选择、页面编排）
+│   │   │   ├── style.py               # 苹果官网简约风 CSS
+│   │   │   ├── data.py                # 只读数据访问层（DuckDB/JSON/Parquet + 缓存）
+│   │   │   ├── charts.py              # Plotly K线/情感趋势/通过率图（红涨绿跌）
+│   │   │   └── views.py               # Agent 报告 HTML 片段渲染
 │   │   └── utils/                     # 日志 / 显存监控 / 技术指标 / JSON 容错
 │   ├── scripts/                       # 构建、评估、验证脚本
 │   │   └── _legacy/                   # 一次性验证脚本（归档）
@@ -286,7 +318,7 @@ a-share-agent-system/
 | 千问大模型 | Qwen2.5-7B-Instruct（QLoRA NF4 + LoRA r=64） |
 | 训练框架 | PyTorch 2.11.0+cu128 / PEFT / TRL / bitsandbytes |
 | 数据源 | AkShare / BaoStock / 新浪财经 / 腾讯行情 |
-| 前端 | Streamlit（Phase 3） |
+| 前端 | Streamlit 1.52（苹果官网简约风格）+ Plotly 5.24 |
 
 ## 开发路线
 
@@ -295,7 +327,7 @@ a-share-agent-system/
 - [x] **工程化重构** — pyproject 包化 / 死代码归档 / 统一配置入口
 - [x] **Phase 3.1** — 三 Agent 实现（Analyst / Strategist / Critic）+ 证据链 + 双层校验 + 28 项测试
 - [x] **Phase 3.2** — 编排层：Critic 反馈迭代闭环（4 种终局 + 提前终止）、多股票批量评测（首/终局通过率、规则触发频次）、41 项测试
-- [ ] **Phase 3.3** — Streamlit 前端看板 + 5 只股票端到端验收
+- [x] **Phase 3.3** — Streamlit 前端看板（苹果官网简约风格）：批次概览 / K 线 + 策略价位线 / 情感趋势 / 三 Agent 报告 + 证据链 + 迭代闭环时间线
 
 ## 硬件环境
 

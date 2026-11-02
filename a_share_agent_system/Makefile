@@ -6,7 +6,7 @@
 PY ?= python
 PKG := a_share_agent_system
 
-.PHONY: help install install-train lint format test test-fast clean db rag label train eval agent agent-mock batch batch-mock
+.PHONY: help install install-train lint format test test-fast clean db rag label train eval agent agent-mock batch batch-mock app
 
 help:                          ## 显示所有可用命令
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -61,6 +61,10 @@ batch:                         ## 多股票批量评测（8 只跨行业，真�
 
 batch-mock:                    ## 批量评测离线联调（验证流程与统计）
 	$(PY) scripts/batch_eval.py --backend mock --as-of 2026-08-20 --no-llm-critic
+
+# -------- 前端 --------
+app:                           ## 启动 Streamlit 看板（苹果官网简约风，纯只读）
+	$(PY) -m streamlit run src/app/main.py
 
 # -------- 清理 --------
 clean:                         ## 清理构建与缓存产物

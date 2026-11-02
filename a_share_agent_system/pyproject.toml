@@ -13,7 +13,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "a-share-agent-system"
-version = "0.2.0"
+version = "0.5.0"
 description = "基于大语言模型多智能体的 A 股舆情分析与量化策略系统"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -63,7 +63,7 @@ train = [
     "wandb>=0.18.0",
 ]
 
-# 可视化前端（Phase 3 启用）
+# 可视化前端（Phase 3.3 已启用）
 app = [
     "streamlit>=1.38.0",
     "plotly>=5.20.0",

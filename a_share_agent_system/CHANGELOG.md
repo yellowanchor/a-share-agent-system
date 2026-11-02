@@ -2,6 +2,32 @@
 
 本项目遵循语义化版本（Semantic Versioning）。
 
+## [0.5.0] — 2026-11-02　Phase 3.3：Streamlit 前端看板
+
+### 新增
+
+- **`src/app/` 五模块看板**（苹果官网简约风格）：
+  - `main.py`：主入口。侧边栏批次/股票选择器，主区按「概览 → K线 → 情感趋势 →
+    Agent 报告 → 证据链 → 迭代闭环 → 全部股票」编排；`md()` 统一 HTML 注入
+    （逐行 strip，规避 markdown-it 把缩进 HTML 行误解析成代码块导致标签泄漏）
+  - `style.py`：全局 CSS——#f5f5f7 区块底色、#d2d2d7 发丝分隔线、18px 圆角卡片、
+    系统字体栈、A 股红涨绿跌配色
+  - `data.py`：只读数据访问层，全部挂 `@st.cache_data`（batch JSON / DuckDB 前复权
+    日线 / 情感标签 parquet / 股票名称映射）
+  - `charts.py`：Plotly 图表——K 线+成交量+MA+策略价位线+PIT 截止日竖线、
+    日频利多/利空条形+7 日净情绪均线、首轮 vs 终局通过率对比
+  - `views.py`：Analyst/Strategist/Critic 卡片、行情/财务快照、证据链、
+    迭代闭环时间线、全部股票表格的纯函数 HTML 渲染
+- 看板为**纯只读展示层**：不加载 LLM / 不触发推理，仅读取 Phase 3.2 评测产物
+
+### 修复
+
+- plotly 在类目轴上 `add_vline(annotation_text=...)` 会对字符串求均值而崩溃，
+  拆成「vline（无标注）+ add_annotation（显式定位）」
+- plotly 5.24 不支持 `rangeselector=False` 布尔值，移除该参数
+- `st.markdown` 多行缩进 HTML 泄漏：统一在 `md()` 帮助函数中清洗
+- `use_container_width` 在 streamlit 1.52 弃用，改用 `width="stretch"`
+
 ## [0.4.0] — 2026-11-02　Phase 3.2：编排层与迭代闭环
 
 ### 新增
