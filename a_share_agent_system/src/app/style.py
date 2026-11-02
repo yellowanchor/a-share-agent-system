@@ -258,6 +258,32 @@ table.stocks td.num {{ font-variant-numeric: tabular-nums; }}
 }}
 
 /* ---------- Streamlit 组件微调 ---------- */
+/* Material Symbols 字体加载失败时，expander 图标连字文本会以纯文本
+   「keyboard_arrow_right」显示并与标题重叠 → 隐藏文本，改用 CSS 三角箭头 */
+[data-testid="stExpander"] [data-testid="stIconMaterial"] {{
+    font-size: 0 !important;
+    width: 14px;
+    height: 14px;
+    position: relative;
+    flex-shrink: 0;
+    margin-right: 6px;
+}}
+[data-testid="stExpander"] [data-testid="stIconMaterial"]::before {{
+    content: "";
+    position: absolute;
+    top: 3px;
+    left: 2px;
+    width: 7px;
+    height: 7px;
+    border-right: 1.8px solid #6e6e73;
+    border-bottom: 1.8px solid #6e6e73;
+    transform: rotate(-45deg);      /* 收起：指向右 */
+    transition: transform 0.15s ease;
+}}
+[data-testid="stExpander"] details[open] [data-testid="stIconMaterial"]::before {{
+    transform: rotate(45deg);       /* 展开：指向下 */
+    top: 1px;
+}}
 [data-testid="stExpander"] {{
     border: 1px solid #e8e8ed;
     border-radius: 14px;
