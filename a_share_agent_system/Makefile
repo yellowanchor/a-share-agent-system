@@ -6,7 +6,7 @@
 PY ?= python
 PKG := a_share_agent_system
 
-.PHONY: help install install-train lint format test test-fast clean db rag label train eval agent agent-mock
+.PHONY: help install install-train lint format test test-fast clean db rag label train eval agent agent-mock batch batch-mock
 
 help:                          ## 显示所有可用命令
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -55,6 +55,12 @@ agent:                         ## 三 Agent 真实推理（Qwen 4bit + bge-m3）
 
 agent-mock:                    ## 三 Agent 离线联调（不加载大模型）
 	$(PY) scripts/run_agent_demo.py --code 600519 --backend mock
+
+batch:                         ## 多股票批量评测（8 只跨行业，真实推理）
+	$(PY) scripts/batch_eval.py --backend qwen --as-of 2026-08-20
+
+batch-mock:                    ## 批量评测离线联调（验证流程与统计）
+	$(PY) scripts/batch_eval.py --backend mock --as-of 2026-08-20 --no-llm-critic
 
 # -------- 清理 --------
 clean:                         ## 清理构建与缓存产物

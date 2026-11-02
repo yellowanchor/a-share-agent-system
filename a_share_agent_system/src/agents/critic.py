@@ -282,6 +282,33 @@ class CriticAgent(BaseAgent):
 
         return issues, checked
 
+    def check_rules(
+        self, report: AnalystReport, advice: StrategyAdvice
+    ) -> CriticVerdict:
+        """只跑第一层确定性规则，不调用大模型。
+
+        供编排层复检「自动修正版 / 降级版」是否真的合规——修正本身也需要
+        被验证，否则等于把 Critic 的输出当免检品。该方法不产生 LLM 开销，
+        可在批量评测中反复调用。
+
+        Args:
+            report: Analyst 报告（提供证据集合与现价）。
+            advice: 待复检的策略建议。
+
+        Returns:
+            CriticVerdict，llm_used 恒为 False。
+        """
+        issues, checked = self._rule_check(report, advice)
+        passed = not any(i.severity == "error" for i in issues)
+        return CriticVerdict(
+            passed=passed,
+            issues=issues,
+            revised=None,
+            summary=self._summary(passed, issues),
+            llm_used=False,
+            checked_fields=checked,
+        )
+
     # ------------------------------------------------------------------
     # 第二层：大模型语义校验
     # ------------------------------------------------------------------

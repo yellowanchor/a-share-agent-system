@@ -84,7 +84,9 @@ class StrategistAgent(BaseAgent):
 
         Args:
             input_data: 需含 `report`（AnalystReport）；
-                        可选 `atr_stop_mult` / `atr_target_mult` 覆盖默认值。
+                        可选 `atr_stop_mult` / `atr_target_mult` 覆盖默认值；
+                        可选 `feedback`（Critic 上一轮的问题反馈，重试时注入）；
+                        可选 `temperature`（重试时由编排层下调以提高收敛性）。
 
         Returns:
             {"advice": StrategyAdvice, "prompt": str, "reference": dict}
@@ -100,11 +102,13 @@ class StrategistAgent(BaseAgent):
 
         stop_mult = float(input_data.get("atr_stop_mult", self.atr_stop_mult))
         target_mult = float(input_data.get("atr_target_mult", self.atr_target_mult))
+        feedback = str(input_data.get("feedback") or "")
+        temperature = float(input_data.get("temperature", self.config.temperature))
 
         # 1. 程序化算出参考价位（不依赖模型）
         ref = self._reference_prices(report, stop_mult, target_mult)
-        # 2. 组装提示词
-        prompt = self._build_prompt(report, ref)
+        # 2. 组装提示词（重试时把 Critic 的问题反馈一并注入）
+        prompt = self._build_prompt(report, ref, feedback)
         system = self._system_prompt()
 
         raw = ""
@@ -112,7 +116,7 @@ class StrategistAgent(BaseAgent):
         try:
             raw = self.llm.chat(
                 system, prompt,
-                temperature=self.config.temperature,
+                temperature=temperature,
                 max_new_tokens=self.config.max_tokens,
                 role=self.config.name,
             )
@@ -205,8 +209,24 @@ class StrategistAgent(BaseAgent):
             "输出严格 JSON。"
         )
 
-    def _build_prompt(self, report: AnalystReport, ref: Dict[str, Any]) -> str:
-        """组装策略提示词（含参考价位与引用规范）。"""
+    def _build_prompt(
+        self,
+        report: AnalystReport,
+        ref: Dict[str, Any],
+        feedback: str = "",
+    ) -> str:
+        """组装策略提示词（含参考价位、引用规范与可选的 Critic 反馈）。
+
+        Args:
+            report: Analyst 研判报告。
+            ref: `_reference_prices` 算出的参考价位。
+            feedback: 上一轮 Critic 检出的问题描述（重试轮非空）。
+
+        为什么反馈要显式写「其余字段沿用」
+        --------------------------------
+        只说「你错了请改」会让模型另起炉灶，把原本正确的方向也改掉，
+        反而制造新问题。显式约束修改范围，收敛率才高。
+        """
         lines: List[str] = [
             f"股票代码: {report.stock_code}",
             f"数据截止日: {report.as_of}",
@@ -248,6 +268,18 @@ class StrategistAgent(BaseAgent):
             f"- 单票仓位上限: {self.max_position_pct}%",
             "",
             "注意: 止损/止盈的方向必须与 direction 一致，两套价位不可混用。",
+        ]
+        if feedback:
+            lines += [
+                "",
+                "【上一轮校验未通过，请修正以下问题】",
+                feedback,
+                "",
+                "要求: 只修正上述问题；除此之外的一切字段"
+                "（方向、持有周期、推理依据、证据引用）请沿用上一轮取值，"
+                "不要另起炉灶重写。",
+            ]
+        lines += [
             "",
             "请严格输出如下 JSON（不要输出多余文字）:",
             "{",

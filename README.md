@@ -10,7 +10,7 @@
 [![LLM](https://img.shields.io/badge/LLM-Qwen2.5--7B-615EFF?logo=alibabacloud&logoColor=white)](https://www.modelscope.cn/)
 [![Embedding](https://img.shields.io/badge/Embedding-bge--m3-0052CC?logo=huggingface&logoColor=white)](https://huggingface.co/BAAI/bge-m3)
 [![GPU](https://img.shields.io/badge/GPU-RTX%205070%20Ti%2016GB-76B900?logo=nvidia&logoColor=white)](https://www.nvidia.com/)
-[![Progress](https://img.shields.io/badge/Phase%203.1-三%20Agent%20%E5%B7%A5%E4%BD%9C%E6%B5%81%20%E5%B7%B2%E5%AE%8C%E6%88%90-brightgreen)](https://github.com/yellowanchor/a-share-agent-system)
+[![Progress](https://img.shields.io/badge/Phase%203.2-%E7%BC%96%E6%8E%92%E5%B1%82%E8%BF%AD%E4%BB%A3%E9%97%AD%E7%8E%AF%20%E5%B7%B2%E5%AE%8C%E6%88%90-brightgreen)](https://github.com/yellowanchor/a-share-agent-system)
 
 </div>
 
@@ -124,7 +124,7 @@ python src/models/sentiment/evaluate.py
 python scripts/eval_rag_recall.py
 ```
 
-### 4. 三 Agent 工作流（Phase 3）
+### 4. 三 Agent 工作流（Phase 3.2 起由编排层驱动）
 
 ```bash
 # 离线联调：不加载大模型，秒级验证流程与降级路径
@@ -133,11 +133,18 @@ python scripts/run_agent_demo.py --code 600519 --backend mock
 # 真实推理：Qwen2.5-7B-Instruct 4bit + bge-m3，输出带证据链的 Markdown 报告
 python scripts/run_agent_demo.py --code 600519 --backend qwen --as-of 2026-08-20
 
-# 单元测试（28 项：词典回归 / 指标解析解 / JSON 容错 / Critic 规则触发）
-pytest tests/test_agents.py -v
+# 多股票批量评测（8 只跨行业，产出 Markdown 报告 + 结构化 JSON）
+python scripts/batch_eval.py --backend qwen --as-of 2026-08-20
+
+# 关闭迭代闭环做对照实验（等价于 Phase 3.1 的单向流水线）
+python scripts/batch_eval.py --backend qwen --max-retries 0
+
+# 单元测试（41 项：词典回归 / 指标解析解 / JSON 容错 / Critic 规则 / 编排闭环分支）
+pytest tests/ -v
 ```
 
 单次真实推理耗时参考（RTX 5070 Ti 16GB）：Analyst 44s（含 bge-m3 首次编码）、Strategist 4.5s、Critic 5.0s。
+批量评测复用同一批 Agent 实例：首只承担模型加载（约 14 s），后续每只检索仅约 50 ms。
 
 ## 项目结构
 
@@ -151,8 +158,11 @@ a-share-agent-system/
 │   │   ├── agents/                    # 多智能体（Analyst / Strategist / Critic）
 │   │   │   ├── schemas.py             # Agent 间数据契约（Pydantic）
 │   │   │   ├── analyst.py             # 舆情研判：RAG 检索 + 词典打标 + 证据编号
-│   │   │   ├── strategist.py          # 策略生成：ATR 参考价位 + 方向约束
-│   │   │   └── critic.py              # 双层校验：13 项规则 + LLM 语义
+│   │   │   ├── strategist.py          # 策略生成：ATR 参考价位 + 方向约束 + 反馈重试
+│   │   │   ├── critic.py              # 双层校验：13 项规则 + LLM 语义
+│   │   │   ├── orchestrator.py        # 编排层：迭代闭环 + 批量执行 + 安全降级
+│   │   │   ├── report.py              # Markdown 渲染（单只 + 批量，单一来源）
+│   │   │   └── stats.py               # 批量评测指标统计
 │   │   ├── data/
 │   │   │   ├── storage/               # DuckDB 查询接口
 │   │   │   └── _legacy/               # 早期采集框架（归档，已停用）
@@ -227,6 +237,27 @@ a-share-agent-system/
 | Strategist | 方向**做空**，仓位 20%，止损 11964.93 / 止盈 10732.03 | 4.5 s |
 | Critic | 13 项规则 + LLM 语义校验，**通过**（0 阻断 / 1 提示） | 5.0 s |
 
+### 多股票批量评测（Phase 3.2，8 只跨行业 / Qwen 4bit / 截止日 2026-08-20）
+
+| 指标 | 数值 |
+|------|------|
+| 首轮通过率 | 100%（8/8，提示词改进后策略质量稳定） |
+| 方向分布 | 做空 2（茅台 / 通威）/ 做多 4 / 观望 2 |
+| 整批耗时 | 2m29s（首只 14.3s 含模型加载，稳态单只 9–12s） |
+
+### 迭代闭环收敛实验（生成侧仓位上限 20% vs 校验侧 8%）
+
+| 指标 | 数值 |
+|------|------|
+| 首轮通过率 | 25% |
+| 终局通过率 | **100%**（闭环收敛增益 **+75%**） |
+| 平均迭代轮次 | 2.0 |
+| 终局分布 | 重试通过 2 / 采纳自动修正 1 / 首轮通过 1 |
+
+实测发现（可直接写入论文）：反馈重试能修掉指定问题，但模型可能**连带
+改变原本正确的字段**（重试轮把做空改成做多）；且重试输出不单调收敛。
+结论：**确定性自动修正作为兜底不可少**，纯靠模型重试不可靠。
+
 **Critic 校验规则表**（规则层确定性可复现，不依赖模型）
 
 | 编号 | 校验内容 | 编号 | 校验内容 |
@@ -263,7 +294,7 @@ a-share-agent-system/
 - [x] **Phase 2** — 模型训练：弱监督打标 + QLoRA 微调 + 三组对比实验
 - [x] **工程化重构** — pyproject 包化 / 死代码归档 / 统一配置入口
 - [x] **Phase 3.1** — 三 Agent 实现（Analyst / Strategist / Critic）+ 证据链 + 双层校验 + 28 项测试
-- [ ] **Phase 3.2** — 编排层：Agent 迭代闭环、多股票批量评测、报告落盘规范
+- [x] **Phase 3.2** — 编排层：Critic 反馈迭代闭环（4 种终局 + 提前终止）、多股票批量评测（首/终局通过率、规则触发频次）、41 项测试
 - [ ] **Phase 3.3** — Streamlit 前端看板 + 5 只股票端到端验收
 
 ## 硬件环境

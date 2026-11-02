@@ -73,6 +73,15 @@ agents:
     price_deviation: 0.30         # 报价偏离现价超过 30% 判为疑似幻觉
     use_llm: true                 # 是否启用第二层大模型语义校验
 
+# -------- 编排层配置（Phase 3.2：迭代闭环）--------
+# Analyst 只跑一次；Strategist → Critic 不通过时带反馈重试
+orchestrator:
+  max_retries: 2                  # 最大重试次数（不含首轮；0=关闭闭环）
+  retry_on: "error"               # error=仅阻断项重试；any=含提示项
+  use_revised: true               # 达到上限时采纳 Critic 的确定性自动修正版
+  temperature_decay: 0.7          # 每重试一轮的温度衰减系数（收敛用）
+  stop_on_repeat: true            # 连续两轮问题集合完全相同则提前终止
+
 # -------- 日志 --------
 logging:
   level: "INFO"
