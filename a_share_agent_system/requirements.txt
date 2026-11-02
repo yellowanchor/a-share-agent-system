@@ -27,15 +27,16 @@ pynvml>=11.5.0            # GPU显存监控(storage_monitor)
 sentence-transformers>=3.0.0,<7.0.0   # bge-m3 嵌入模型加载 (实际 6.0.0)
 transformers>=4.41.0,<5.0.0           # 实际 4.57.6 (5.x 与 sentence-transformers 不兼容)
 
-# -------- Phase 2: LoRA 微调 (待启用) --------
-# peft>=0.13.0
-# accelerate>=0.34.0
-# bitsandbytes>=0.43.0
-# wandb>=0.18.0
-# datasets>=2.20.0
+# -------- Phase 2: QLoRA 微调 (已启用) --------
+peft>=0.13.0                          # LoRA 微调 (实际 0.20)
+accelerate>=0.34.0                    # 分布式/显存调度
+bitsandbytes>=0.43.0                  # 4bit NF4 量化 (实际 0.50.2)
+datasets>=2.20.0                      # 训练数据集封装
+# wandb>=0.18.0                       # 可选: 训练可视化 (默认 offline)
 
-# -------- Phase 3: Agent集成 (待启用) --------
-# streamlit>=1.38.0
+# -------- Phase 3: 三 Agent + 前端 --------
+# Agent 层依赖已由上方覆盖 (transformers / pydantic / torch)，无需新增
+# streamlit>=1.38.0                   # Phase 3 第二部分前端看板
 
 # -------- 开发工具 --------
 pyyaml>=6.0               # YAML配置文件解析

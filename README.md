@@ -10,7 +10,7 @@
 [![LLM](https://img.shields.io/badge/LLM-Qwen2.5--7B-615EFF?logo=alibabacloud&logoColor=white)](https://www.modelscope.cn/)
 [![Embedding](https://img.shields.io/badge/Embedding-bge--m3-0052CC?logo=huggingface&logoColor=white)](https://huggingface.co/BAAI/bge-m3)
 [![GPU](https://img.shields.io/badge/GPU-RTX%205070%20Ti%2016GB-76B900?logo=nvidia&logoColor=white)](https://www.nvidia.com/)
-[![Progress](https://img.shields.io/badge/Phase-2%20%2F%203%20%E5%AE%8C%E6%88%90-brightgreen)](https://github.com/yellowanchor/a-share-agent-system)
+[![Progress](https://img.shields.io/badge/Phase%203.1-三%20Agent%20%E5%B7%A5%E4%BD%9C%E6%B5%81%20%E5%B7%B2%E5%AE%8C%E6%88%90-brightgreen)](https://github.com/yellowanchor/a-share-agent-system)
 
 </div>
 
@@ -42,6 +42,7 @@
 | **自研向量库 LocalVectorStore** | 替代 ChromaDB，规避其在 Windows 下 HNSW 索引不落盘的缺陷；bge-m3 + GPU 精确余弦检索，端到端 111ms，支持 md5 幂等的增量更新 |
 | **弱监督 + QLoRA 情感分析** | 金融情感词典（人工一致率 90.5%）自动打标 12.6 万条，再以 QLoRA NF4 微调 Qwen2.5-7B，准确率 89.0%，利空类召回率 100% |
 | **16GB 显存工程方案** | 尾部 logits 切片 + 左填充，解决 Windows WDDM 显存换页问题，单卡完成 7B 模型 3 epoch 训练 |
+| **三 Agent 协作与证据链** | Analyst（检索研判）→ Strategist（策略生成）→ Critic（双层校验），每个结论带 `[证据 n]` 编号可溯源至原文；Critic 采用「确定性规则 + 大模型语义」双层校验，规则层可复现 |
 
 ## 系统架构
 
@@ -123,6 +124,21 @@ python src/models/sentiment/evaluate.py
 python scripts/eval_rag_recall.py
 ```
 
+### 4. 三 Agent 工作流（Phase 3）
+
+```bash
+# 离线联调：不加载大模型，秒级验证流程与降级路径
+python scripts/run_agent_demo.py --code 600519 --backend mock
+
+# 真实推理：Qwen2.5-7B-Instruct 4bit + bge-m3，输出带证据链的 Markdown 报告
+python scripts/run_agent_demo.py --code 600519 --backend qwen --as-of 2026-08-20
+
+# 单元测试（28 项：词典回归 / 指标解析解 / JSON 容错 / Critic 规则触发）
+pytest tests/test_agents.py -v
+```
+
+单次真实推理耗时参考（RTX 5070 Ti 16GB）：Analyst 44s（含 bge-m3 首次编码）、Strategist 4.5s、Critic 5.0s。
+
 ## 项目结构
 
 ```
@@ -133,14 +149,19 @@ a-share-agent-system/
 │   ├── src/                           # 源码（src-layout，安装后可全局 import）
 │   │   ├── config.py                  # 统一配置与路径入口
 │   │   ├── agents/                    # 多智能体（Analyst / Strategist / Critic）
+│   │   │   ├── schemas.py             # Agent 间数据契约（Pydantic）
+│   │   │   ├── analyst.py             # 舆情研判：RAG 检索 + 词典打标 + 证据编号
+│   │   │   ├── strategist.py          # 策略生成：ATR 参考价位 + 方向约束
+│   │   │   └── critic.py              # 双层校验：13 项规则 + LLM 语义
 │   │   ├── data/
 │   │   │   ├── storage/               # DuckDB 查询接口
 │   │   │   └── _legacy/               # 早期采集框架（归档，已停用）
 │   │   ├── models/
+│   │   │   ├── llm/                   # LLM 后端（Qwen 4bit / Mock 离线桩）
 │   │   │   ├── rag/                   # 自研向量库 LocalVectorStore（支持增量更新）
 │   │   │   └── sentiment/             # 情感分析（词典打标 / QLoRA / 评估）
-│   │   ├── app/                       # Streamlit 前端（Phase 3）
-│   │   └── utils/                     # 日志与显存监控
+│   │   ├── app/                       # Streamlit 前端（Phase 3.3）
+│   │   └── utils/                     # 日志 / 显存监控 / 技术指标 / JSON 容错
 │   ├── scripts/                       # 构建、评估、验证脚本
 │   │   └── _legacy/                   # 一次性验证脚本（归档）
 │   ├── configs/                       # settings.yaml / train_config.yaml / prompts
@@ -198,6 +219,31 @@ a-share-agent-system/
 | 单次向量检索 | 3 ms |
 | 首个相关结果落位 Top-1 | 78.6% |
 
+### 三 Agent 工作流（Phase 3.1，贵州茅台 600519 / 截止日 2026-08-20）
+
+| 阶段 | 输出 | 耗时 |
+|------|------|------|
+| Analyst | 检索 8 条证据（半年报相关），判定**利空**（置信 0.70），引用 [证据 2][证据 5] | 44.2 s |
+| Strategist | 方向**做空**，仓位 20%，止损 11964.93 / 止盈 10732.03 | 4.5 s |
+| Critic | 13 项规则 + LLM 语义校验，**通过**（0 阻断 / 1 提示） | 5.0 s |
+
+**Critic 校验规则表**（规则层确定性可复现，不依赖模型）
+
+| 编号 | 校验内容 | 编号 | 校验内容 |
+|------|----------|------|----------|
+| E001 | 证据编号越界 | N001 | 缺止损/止盈 |
+| E002 | 无证据引用 | N002 | 止损方向错误 |
+| E003 | 引用与声明不一致 | N003 | 止盈方向错误 |
+| P001 | 仓位超 20% 上限 | N004 | 报价偏离现价（疑似幻觉） |
+| P002 | 仓位数值非法 | T001 | 缺失效条件 |
+| C001 | 方向与舆情矛盾 | T002 | 缺持有周期 |
+| C002 | 观望却有仓位 | L001 | 大模型语义校验（仅供参考） |
+
+**实测发现（可直接写入论文）**
+
+1. **大模型不可靠性**：首次真实推理中，模型照抄了「现价 − 2×ATR」这一做多口径参考价，却在结论里选了做空方向，导致止损/止盈方向完全相反 —— 被 Critic 的 N002/N003 确定性拦截。修复方式是把参考价位拆成做多/做空两套并与方向绑定。
+2. **语义层自身也会出错**：LLM 校验曾给出「把做空止损调到低于收盘价」的建议，该建议本身是错的。因此设计中把语义校验结论标注为**仅供参考**，判定权完全交给规则层与人工。
+
 ## 技术栈
 
 | 类别 | 技术 |
@@ -216,7 +262,9 @@ a-share-agent-system/
 - [x] **Phase 1** — 数据底座：数据采集 + DuckDB 建库 + RAG 向量检索
 - [x] **Phase 2** — 模型训练：弱监督打标 + QLoRA 微调 + 三组对比实验
 - [x] **工程化重构** — pyproject 包化 / 死代码归档 / 统一配置入口
-- [ ] **Phase 3** — 多智能体框架（Analyst / Strategist / Critic）+ Streamlit 前端 + 端到端测试
+- [x] **Phase 3.1** — 三 Agent 实现（Analyst / Strategist / Critic）+ 证据链 + 双层校验 + 28 项测试
+- [ ] **Phase 3.2** — 编排层：Agent 迭代闭环、多股票批量评测、报告落盘规范
+- [ ] **Phase 3.3** — Streamlit 前端看板 + 5 只股票端到端验收
 
 ## 硬件环境
 

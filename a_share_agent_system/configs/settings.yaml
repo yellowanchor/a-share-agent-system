@@ -53,16 +53,25 @@ models:
     normalize: true
 
 # -------- Agent 配置 --------
+# 三 Agent 工作流: Analyst(舆情研判) → Strategist(策略生成) → Critic(反思校验)
 agents:
   analyst:
     temperature: 0.1
     max_tokens: 2048
+    top_k: 8                      # RAG 语义检索返回条数（证据数量）
+    lookback_days: 180            # 行情回看天数（用于 MA/RSI/ATR 等指标）
   strategist:
     temperature: 0.3
     max_tokens: 3072
+    atr_stop_mult: 2.0            # 止损距离 = k × ATR14
+    atr_target_mult: 3.0          # 止盈距离 = k × ATR14
+    max_position_pct: 20.0        # 单票仓位上限（%）
   critic:
     temperature: 0.0
     max_tokens: 1024
+    max_position_pct: 20.0        # 与 strategist 保持一致
+    price_deviation: 0.30         # 报价偏离现价超过 30% 判为疑似幻觉
+    use_llm: true                 # 是否启用第二层大模型语义校验
 
 # -------- 日志 --------
 logging:

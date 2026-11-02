@@ -6,7 +6,7 @@
 PY ?= python
 PKG := a_share_agent_system
 
-.PHONY: help install install-train lint format test test-fast clean db rag label train eval
+.PHONY: help install install-train lint format test test-fast clean db rag label train eval agent agent-mock
 
 help:                          ## 显示所有可用命令
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -48,6 +48,13 @@ train:                         ## QLoRA 微调（续训加 --resume）
 
 eval:                          ## base vs SFT 对比评估
 	$(PY) src/models/sentiment/evaluate.py
+
+# -------- Phase 3: 三 Agent --------
+agent:                         ## 三 Agent 真实推理（Qwen 4bit + bge-m3）
+	$(PY) scripts/run_agent_demo.py --code 600519 --backend qwen
+
+agent-mock:                    ## 三 Agent 离线联调（不加载大模型）
+	$(PY) scripts/run_agent_demo.py --code 600519 --backend mock
 
 # -------- 清理 --------
 clean:                         ## 清理构建与缓存产物
