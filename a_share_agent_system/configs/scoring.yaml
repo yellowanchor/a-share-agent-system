@@ -1,0 +1,26 @@
+# 打分权重与阈值 —— 每日推荐股（Phase 3.4 / M3）
+# 修改后无需改代码，run_daily_signals.py 启动时读取。
+
+weights:
+  sentiment: 0.35      # 舆情：闸门给出的证据加权情感
+  trend: 0.25          # 趋势：均线排列 + 20 日动量
+  volume: 0.20         # 量能：5 日量比
+  risk: 0.20           # 风险：ATR 占比 + 年化波动 + 闸门降级
+
+# 闸门阈值（与 src/agents/news_gate.py 的默认值保持一致）
+gate:
+  min_sentiment: -0.35     # 证据情感 ≤ 该值且冲击 major → veto
+  caution_sentiment: -0.15 # 证据情感 ≤ 该值 → caution
+  min_evidence: 2          # 证据少于该条数 → caution
+
+# 结论阈值
+verdict:
+  buy_min: 65          # ≥ 该分且方向为 buy/add 才给"建议买入"
+  watch_min: 45        # ≥ 该分给"观察"，否则"回避"
+  max_position_pct: 20 # 单票仓位上限（%）
+
+# 风险扣分项
+risk:
+  max_atr_pct: 6.0     # ATR/价格 超过该值开始扣分
+  max_annual_vol: 0.60 # 年化波动率 超过该值开始扣分
+  veto_score_cap: 40   # 被闸门否决的股票，总分上限（避免"分很高但被否")

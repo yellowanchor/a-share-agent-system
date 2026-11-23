@@ -1,0 +1,47 @@
+# ============================================================
+#  LoRA SFT 训练配置 — RTX 5070 Ti 16GB VRAM 验证参数
+# ============================================================
+
+model_name: "Qwen/Qwen2.5-7B-Instruct"
+
+# -------- LoRA 参数 --------
+lora:
+  rank: 64
+  alpha: 128
+  dropout: 0.05
+  target_modules: "all-linear"
+
+# -------- 训练超参数（16GB显存安全配置）--------
+training:
+  per_device_train_batch_size: 8
+  gradient_accumulation_steps: 4
+  max_seq_length: 2048
+  num_epochs: 3
+  learning_rate: 2.0e-4
+  warmup_ratio: 0.03
+  weight_decay: 0.01
+
+  # 精度与加速
+  bf16: true
+  flash_attention_2: true
+  gradient_checkpointing: true
+
+  # 评估与保存
+  eval_strategy: "steps"
+  eval_steps: 200
+  save_strategy: "steps"
+  save_steps: 200
+  load_best_model_at_end: true
+  metric_for_best_model: "eval_loss"
+
+# -------- OOM 处理优先级 --------
+#  1. batch_size 降至 4
+#  2. 确认 gradient_checkpointing 已开启
+#  3. 最后才降低 lora_rank 至 32
+#  禁止直接量化模型进行 SFT 训练
+
+# -------- 数据 --------
+data:
+  train_samples: 30000
+  eval_samples: 5000
+  format: "jsonl"
