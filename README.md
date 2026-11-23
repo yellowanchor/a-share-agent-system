@@ -16,20 +16,6 @@
 
 ---
 
-## 文档导航
-
-**表 0-1 按需求找文档**
-
-| 想了解 | 看哪里 |
-| --- | --- |
-| 项目能做什么、怎么跑 | 本文件 |
-| 环境、数据规模、目录、**硬约束**（改代码前必读） | [项目说明书.md](项目说明书.md) |
-| 文档怎么组织、格式怎么统一 | [docs/文档规范.md](docs/文档规范.md) |
-| 有哪些文档、哪份还算数 | [docs/文档索引.md](docs/文档索引.md) |
-| 写论文要用的章节骨架与数据 | [docs/论文素材.md](docs/论文素材.md) |
-| 数据与新闻采集怎么优化 | [docs/方案/数据与新闻采集优化方案.md](docs/方案/数据与新闻采集优化方案.md) |
-| 看板怎么改版、每日建议页怎么设计 | [docs/方案/前端看板优化方案.md](docs/方案/前端看板优化方案.md) |
-
 ## 项目简介
 
 本系统面向 A 股市场，构建「数据采集 → 情感分析 → 检索增强 → 多智能体决策」的完整技术链路：以 1755 万行行情数据与 12.6 万条金融新闻为数据基座，通过弱监督打标与 QLoRA 微调训练金融领域情感分析模型（准确率 89.0%），并以自研向量库提供毫秒级证据检索，最终由分析师 / 策略师 / 评审员三类智能体协作生成可追溯的投资分析报告。
@@ -61,7 +47,7 @@
 ## 系统架构
 
 <div align="center">
-  <img src="a_share_agent_system/docs/architecture.png" alt="系统架构" width="85%">
+  <img src="assets/architecture.png" alt="系统架构" width="85%">
 </div>
 
 <details>
@@ -78,7 +64,7 @@
 ### 工作流程
 
 <div align="center">
-  <img src="a_share_agent_system/docs/flow.png" alt="工作流程图" width="85%">
+  <img src="assets/flow.png" alt="工作流程图" width="85%">
 </div>
 
 ## 快速开始
@@ -183,14 +169,14 @@ streamlit run src/app/main.py
 - 顶栏：品牌 + 数据截止徽标 + 大模型开关（规则 / eco / max）+ 外观（浅色 / 深色 / 米色、背景图与模糊度）+ 刷新
 
 <div align="center">
-  <img src="a_share_agent_system/docs/screenshots/dashboard_top.png" alt="看板概览与K线" width="85%">
+  <img src="assets/dashboard_top.png" alt="看板概览与K线" width="85%">
 </div>
 
 <details>
 <summary>更多截图</summary>
 
 <div align="center">
-  <img src="a_share_agent_system/docs/screenshots/dashboard_report.png" alt="多智能体报告" width="85%">
+  <img src="assets/dashboard_report.png" alt="多智能体报告" width="85%">
 </div>
 
 </details>
@@ -229,12 +215,11 @@ a-share-agent-system/
 │   ├── scripts/                       # 构建、评估、验证脚本
 │   │   └── _legacy/                   # 一次性验证脚本（归档）
 │   ├── configs/                       # settings.yaml / train_config.yaml / prompts
-│   ├── tests/                         # pytest 用例
-│   ├── docs/                          # 架构图与流程图
-│   └── reports/                       # 实验报告
+│   └── tests/                         # pytest 用例
 ├── data_platform/                     # 数据采集平台（Phase 1 实际采集器）
 │   ├── scripts/                       # 采集脚本（01–06）
 │   └── src/                           # BaoStock 客户端与存储封装
+├── assets/                            # README 用架构图 / 流程图 / 看板截图
 └── README.md
 ```
 
