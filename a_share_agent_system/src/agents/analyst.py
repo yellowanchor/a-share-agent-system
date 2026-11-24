@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 __all__ = ["AnalystAgent"]
 
-# financials_yjbb 中用于报告的关键字段（白名单，规避首列乱码列名）
+# financials_yjbb 中用于报告的关键字段（白名单，只取报告需要的列）
 _FIN_FIELDS = (
     "report_date", "pub_date", "eps", "revenue", "revenue_yoy",
     "net_profit", "net_profit_yoy", "roe", "gross_margin", "bps", "ocf_ps",

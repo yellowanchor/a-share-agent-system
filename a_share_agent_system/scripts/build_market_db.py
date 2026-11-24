@@ -53,6 +53,10 @@ TABLES = {
         "file": "financials_yjbb.parquet",
         "index": ["code", "report_date"],
         "comment": "业绩报表(Point-in-Time)",
+        # 源 parquet 里 report_date 是 '20160331' 这种字符串，入库时统一转 DATE，
+        # 否则前端/报告会直接显示成 8 位数字，且无法与 pub_date 一起做日期运算。
+        "select": ("SELECT * REPLACE (strptime(report_date, '%Y%m%d')::DATE AS report_date) "
+                   "FROM read_parquet('{src}')"),
     },
     "news_articles": {
         "file": "news.parquet",
@@ -92,10 +96,11 @@ def build(src_dir: Path, out_path: Path, rebuild: bool) -> None:
 
             logger.info("[%s] 从 %s 导入 ...", table, src_file.name)
             t1 = time.time()
+            select_sql = cfg.get("select") or "SELECT * FROM read_parquet('{src}')"
             con.execute(
                 f"""
                 CREATE TABLE {table} AS
-                SELECT * FROM read_parquet('{src_file.as_posix()}')
+                {select_sql.format(src=src_file.as_posix())}
                 """
             )
             n = con.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
