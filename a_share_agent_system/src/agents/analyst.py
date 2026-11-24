@@ -256,7 +256,7 @@ class AnalystAgent(BaseAgent):
         six = code.split(".")[-1]
         items: List[Dict] = []
         # 日期上界补到当日 23:59:59，否则 "2026-08-20" 会把当天 17:55 的新闻误排除
-        end_ts = f"{str(as_of)[:10]} 23:59:59" if as_of else None
+        end_ts = _end_ts(as_of)
         try:
             items = self.retriever.search(query, stock_code=six, end=end_ts, top_k=top_k)
         except Exception as exc:
@@ -489,6 +489,14 @@ class AnalystAgent(BaseAgent):
 # ---------------------------------------------------------------------------
 _STOPWORDS = set("的了是在和与及为对公司股份公告关于亿元万元年月日个百分点截至"
                  "公司股票投资者关系活动记录表召开举行")
+
+
+def _end_ts(as_of: Optional[str]) -> Optional[str]:
+    """把 as_of（"YYYY-MM-DD"）补成当日 23:59:59 的时间上界；None 原样返回。
+
+    单独抽成函数是为了让"新闻时间上界"这条未来函数防线可被测试直接覆盖。
+    """
+    return f"{str(as_of)[:10]} 23:59:59" if as_of else None
 
 
 def _keywords(title: str) -> List[str]:

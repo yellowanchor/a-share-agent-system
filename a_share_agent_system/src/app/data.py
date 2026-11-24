@@ -110,8 +110,13 @@ def load_kline(code: str, as_of: str, n: int = 120) -> pd.DataFrame:
 
 
 @st.cache_data(show_spinner=False)
-def load_sentiment_daily(code: str) -> pd.DataFrame:
+def load_sentiment_daily(code: str, as_of: str | None = None) -> pd.DataFrame:
     """按日聚合该股票新闻的情感分布（词典打标，Phase 2 产物）。
+
+    Args:
+        code: 股票代码（6 位或带 sh./sz. 前缀）。
+        as_of: 数据截止日 "YYYY-MM-DD"。传入时只统计该日（含）之前的新闻，
+               避免回测/复盘时看到"未来才知道的消息"；None 表示不截断。
 
     Returns:
         DataFrame[date, n, positive, negative, neutral, net_score]
@@ -120,6 +125,10 @@ def load_sentiment_daily(code: str) -> pd.DataFrame:
         SENT_PARQUET, columns=["stock_code", "publish_time", "label"]
     )
     df = df[df["stock_code"] == pretty_code(code)]
+    if as_of:
+        # 当天 23:59:59 的消息仍属"当日可见"，故上界取当日 23:59:59（与 MarketStore 同口径）
+        cutoff = f"{str(as_of)[:10]} 23:59:59"
+        df = df[df["publish_time"].astype(str) <= cutoff]
     if df.empty:
         return pd.DataFrame(
             columns=["date", "n", "positive", "negative", "neutral", "net_score"]

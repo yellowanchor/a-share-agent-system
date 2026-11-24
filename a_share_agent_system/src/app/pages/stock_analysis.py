@@ -295,7 +295,7 @@ def render() -> None:
     else:
         st.info("该股票在 daily_hfq 中无前复权行情数据。")
 
-    sdf = data.load_sentiment_daily(code)
+    sdf = data.load_sentiment_daily(code, as_of)
     if not sdf.empty:
         st.plotly_chart(
             charts.sentiment_chart(sdf), width="stretch",

@@ -338,7 +338,8 @@ a-share-agent-system/
 | 项 | 配置 |
 |----|------|
 | GPU | NVIDIA RTX 5070 Ti 16GB（Blackwell, sm_120） |
-| 内存 | 64GB（计划调整为 32GB，瓶颈在显存，影响有限） |
+| CPU | AMD Ryzen 7 9850X3D（8 核 16 线程） |
+| 内存 | 32 GB（瓶颈在显存，影响有限） |
 | 操作系统 | Windows 11 |
 
 ## 免责声明

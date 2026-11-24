@@ -2,10 +2,20 @@
 # 修改后无需改代码，run_daily_signals.py 启动时读取。
 
 weights:
-  sentiment: 0.35      # 舆情：闸门给出的证据加权情感
+  sentiment: 0.20      # 舆情：闸门给出的证据加权情感
   trend: 0.25          # 趋势：均线排列 + 20 日动量
   volume: 0.20         # 量能：5 日量比
-  risk: 0.20           # 风险：ATR 占比 + 年化波动 + 闸门降级
+  risk: 0.35           # 风险：ATR 占比 + 年化波动 + 闸门降级
+
+# 因子方向：+1 正向使用，-1 反向使用（100 − v）
+# 2026-11-24 回测 IC 检验（2024-06~2026-11，581 个交易日截面）：
+#   trend IC −0.073、volume IC −0.035 → 追涨+放量在 A 股短周期上是负 alpha（反转效应）
+#   risk  IC +0.123、sentiment IC −0.034 → 低波动/低风险才是正 alpha
+direction:
+  sentiment: 1
+  trend: -1
+  volume: -1
+  risk: 1
 
 # 闸门阈值（与 src/agents/news_gate.py 的默认值保持一致）
 gate:

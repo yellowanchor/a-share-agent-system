@@ -61,7 +61,8 @@ logger = logging.getLogger("signals")
 def load_config(path: Path = CONFIG_PATH) -> Dict[str, Any]:
     """读打分配置；缺文件时用内置默认值（保证脚本永远能跑）。"""
     default = {
-        "weights": {"sentiment": 0.35, "trend": 0.25, "volume": 0.20, "risk": 0.20},
+        "weights": {"sentiment": 0.20, "trend": 0.25, "volume": 0.20, "risk": 0.35},
+        "direction": {"sentiment": 1, "trend": -1, "volume": -1, "risk": 1},
         "gate": {"min_sentiment": -0.35, "caution_sentiment": -0.15, "min_evidence": 2},
         "verdict": {"buy_min": 65, "watch_min": 45, "max_position_pct": 20},
         "risk": {"max_atr_pct": 6.0, "max_annual_vol": 0.60, "veto_score_cap": 40},
@@ -148,7 +149,13 @@ def score_components(snap: Dict[str, Any], gate_score: float, gate_verdict: str,
 
 def total_score(parts: Dict[str, float], cfg: Dict[str, Any]) -> float:
     w = cfg["weights"]
-    total = sum(parts[k] * float(w[k]) for k in ("sentiment", "trend", "volume", "risk"))
+    d = cfg.get("direction") or {}
+    total = 0.0
+    for k in ("sentiment", "trend", "volume", "risk"):
+        v = float(parts[k])
+        if float(d.get(k, 1)) < 0:          # 方向 -1：反向使用（100 − v）
+            v = 100.0 - v
+        total += v * float(w[k])
     return round(_clip(total), 1)
 
 

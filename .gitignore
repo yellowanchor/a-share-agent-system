@@ -108,3 +108,5 @@ docs/
 *.zip
 a_share_agent_system/docs/
 !a_share_agent_system/data/knowledge/glossary.json
+
+a_share_agent_system/data/backtest/
