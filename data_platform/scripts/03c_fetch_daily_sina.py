@@ -26,6 +26,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import shutil
 import logging
 import re
 import subprocess
@@ -49,7 +51,8 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(mess
 logger = logging.getLogger(__name__)
 
 BASE = Path(__file__).resolve().parent.parent
-NODE = "C:/Users/djc/.workbuddy/binaries/node/versions/22.22.2/node.exe"
+# Node 可执行文件：优先环境变量 NODE_BIN，其次 PATH 里的 node
+NODE = os.getenv("NODE_BIN") or shutil.which("node") or "node"
 
 SHARD_SIZE = 100
 SHARD_BASE = 2000  # 分片段：与 BaoStock 版(1000)错开

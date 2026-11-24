@@ -17,6 +17,7 @@ Usage:
 
 import sys
 import time
+import os
 from pathlib import Path
 
 import pandas as pd
@@ -30,7 +31,9 @@ from src.models.sentiment.lexicon_labeler import LexiconLabeler
 # ---------------------------------------------------------------------------
 # 路径配置
 # ---------------------------------------------------------------------------
-NEWS_PARQUET = Path("G:/daijincheng/毕业设计/data_platform/data/processed/news.parquet")
+# 新闻底库位置：默认按仓库相对路径推断，可用环境变量 NEWS_PARQUET 覆盖
+NEWS_PARQUET = Path(os.getenv("NEWS_PARQUET",
+                             Path(__file__).resolve().parents[2] / "data_platform" / "data" / "processed" / "news.parquet"))
 OUT_DIR = ROOT / "data" / "processed"
 OUT_PARQUET = OUT_DIR / "sentiment_labeled.parquet"
 REVIEW_MD = OUT_DIR / "sentiment_sample_review.md"
